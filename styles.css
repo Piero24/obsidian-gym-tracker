@@ -1,0 +1,888 @@
+/* ═══════════════════════════════════════════════════
+   Gym Workout Tracker — Calendar View
+   ═══════════════════════════════════════════════════ */
+
+.gym-calendar-container {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+}
+
+/* ── Header ── */
+
+.gym-calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+}
+
+.gym-calendar-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--interactive-accent);
+}
+
+.gym-calendar-nav {
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 6px 14px;
+    font-size: 15px;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+}
+
+.gym-calendar-nav:hover {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+/* ── Day-of-week row ── */
+
+.gym-calendar-dow {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 16px;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 8px 0;
+    border-bottom: 2px solid var(--interactive-accent);
+}
+
+.gym-calendar-dow-cell {
+    padding: 2px 0;
+}
+
+/* ── Day grid ── */
+
+.gym-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    flex: 1;
+    align-content: start;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.gym-calendar-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+    border-radius: 0;
+    cursor: pointer;
+    position: relative;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-normal);
+    background: var(--background-primary);
+    transition: background 0.1s ease;
+}
+
+.gym-calendar-cell:hover {
+    background: var(--background-modifier-hover);
+}
+
+.gym-calendar-cell-other {
+    color: var(--text-faint);
+    cursor: default;
+    background: var(--background-secondary);
+}
+
+.gym-calendar-cell-other:hover {
+    background: var(--background-secondary);
+}
+
+.gym-calendar-cell-today {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.gym-calendar-cell-today:hover {
+    background: var(--interactive-accent-hover, var(--interactive-accent));
+    opacity: 0.9;
+}
+
+/* Workout indicator strip */
+.gym-calendar-cell-workout::after {
+    content: "";
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--interactive-accent);
+}
+
+.gym-calendar-cell-today.gym-calendar-cell-workout::after {
+    background: var(--text-on-accent);
+}
+
+/* ── Footer ── */
+
+.gym-calendar-footer {
+    display: flex;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.gym-calendar-start-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: opacity 0.15s ease;
+}
+
+.gym-calendar-start-btn:hover {
+    opacity: 0.85;
+}
+
+.gym-calendar-today-btn {
+    padding: 10px 18px;
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.gym-calendar-today-btn:hover {
+    background: var(--background-modifier-border);
+    border-color: var(--interactive-accent);
+}
+
+/* ═══════════════════════════════════════════════════
+   Workout View
+   ═══════════════════════════════════════════════════ */
+
+.gym-workout-modal {
+    padding: 20px;
+    max-height: 100%;
+    overflow-y: auto;
+}
+
+.gym-workout-title {
+    margin: 0 0 20px 0;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.gym-workout-empty {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* ── Template picker ── */
+
+.gym-template-picker {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 16px;
+    background: var(--background-secondary);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.gym-template-picker label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-normal);
+    white-space: nowrap;
+}
+
+.gym-template-picker select {
+    flex: 1;
+    padding: 10px 12px;
+    min-height: 42px;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 14px;
+}
+
+.gym-load-template-btn {
+    padding: 8px 18px;
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    transition: opacity 0.15s ease;
+}
+
+.gym-load-template-btn:hover {
+    opacity: 0.85;
+}
+
+/* ── Session note ── */
+
+.gym-session-note {
+    margin-bottom: 24px;
+}
+
+.gym-session-note label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-normal);
+}
+
+.gym-session-note-input {
+    width: 100%;
+    resize: vertical;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 13px;
+}
+
+.gym-session-note-input:focus {
+    border-color: var(--interactive-accent);
+    outline: none;
+    box-shadow: 0 0 0 1px var(--interactive-accent);
+}
+
+/* ── Exercise block ── */
+
+.gym-exercise-block {
+    margin-bottom: 24px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 10px;
+    padding: 16px;
+    background: var(--background-primary);
+}
+
+.gym-exercise-name {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Exercise note */
+.gym-exercise-note {
+    margin-bottom: 12px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.gym-exercise-note label {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.gym-exercise-note-input {
+    flex: 1;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 13px;
+}
+
+.gym-exercise-note-input:focus {
+    border-color: var(--interactive-accent);
+    outline: none;
+}
+
+/* ── Exercise table wrapper (responsive scroll) ── */
+
+.gym-exercise-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.gym-exercise-table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.gym-exercise-table th {
+    background: var(--background-secondary);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 12px;
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 2px solid var(--background-modifier-border);
+    white-space: nowrap;
+}
+
+.gym-exercise-table td {
+    padding: 10px 6px;
+    text-align: center;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.gym-exercise-table tbody tr:hover {
+    background: var(--background-modifier-hover);
+}
+
+.gym-cell-set-num {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 32px;
+}
+
+.gym-cell-template {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.gym-cell-last {
+    color: var(--text-faint);
+    font-size: 13px;
+}
+
+.gym-exercise-table td.gym-cell-today {
+    padding: 2px 4px;
+}
+
+.gym-input-num {
+    width: 48px;
+    padding: 5px 4px;
+    text-align: center;
+    border: 1px solid var(--interactive-accent);
+    border-radius: 6px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 13px;
+    font-weight: 500;
+    transition: box-shadow 0.15s ease;
+}
+
+.gym-input-num:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--interactive-accent);
+}
+
+/* ── Buttons ── */
+
+.gym-save-btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.gym-save-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: opacity 0.15s ease;
+}
+
+.gym-save-btn:hover {
+    opacity: 0.85;
+}
+
+.gym-cancel-btn {
+    padding: 10px 18px;
+    background: var(--background-modifier-hover);
+    color: var(--text-muted);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.gym-cancel-btn:hover {
+    background: var(--background-modifier-border);
+    color: var(--text-normal);
+}
+
+.gym-delete-btn {
+    padding: 10px 16px;
+    background: transparent;
+    color: var(--text-error);
+    border: 1px solid var(--text-error);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.gym-delete-btn:hover {
+    background: var(--text-error);
+    color: var(--text-on-accent);
+}
+
+/* ═══════════════════════════════════════════════════
+   Settings Tab
+   ═══════════════════════════════════════════════════ */
+
+.gym-settings {
+    padding: 20px 16px 24px 16px;
+}
+
+.gym-settings h2 {
+    margin-bottom: 16px;
+    margin-top: 28px;
+}
+
+.gym-settings h2:first-child {
+    margin-top: 0;
+}
+
+/* ── Shared collapsible helpers ── */
+
+.gym-collapse-arrow {
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    width: 14px;
+    display: inline-block;
+}
+
+.gym-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--background-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.gym-hidden {
+    display: none;
+}
+
+.gym-collapsed {
+    display: none;
+}
+
+/* ── Template card ── */
+
+.gym-template-card {
+    margin-bottom: 20px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.gym-template-header {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 12px 14px;
+    cursor: pointer;
+    user-select: none;
+    background: var(--background-secondary);
+}
+
+.gym-template-header:hover {
+    background: var(--background-modifier-hover);
+}
+
+.gym-template-name-input {
+    flex: 1;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.gym-template-delete-btn {
+    background: none;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.gym-template-delete-btn:hover {
+    background: var(--background-modifier-error);
+}
+
+.gym-template-body {
+    padding: 14px 16px;
+}
+
+/* ── Exercise card (in settings) ── */
+
+.gym-exercise-card {
+    margin: 8px 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.gym-exercise-header-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 10px 12px;
+    cursor: pointer;
+    user-select: none;
+    background: var(--background-primary);
+}
+
+.gym-exercise-header-row:hover {
+    background: var(--background-modifier-hover);
+}
+
+.gym-exercise-name-input {
+    flex: 1;
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.gym-exercise-body {
+    padding: 12px 14px 14px 14px;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+/* ── Autocomplete dropdown ── */
+
+.gym-autocomplete-wrapper {
+    position: relative;
+    flex: 1;
+}
+
+.gym-autocomplete-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 320px;
+    overflow-y: auto;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    margin-top: 2px;
+}
+
+.gym-autocomplete-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--background-modifier-border-hover);
+}
+
+.gym-autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.gym-autocomplete-item:hover,
+.gym-autocomplete-item-selected {
+    background: var(--background-modifier-hover);
+}
+
+.gym-autocomplete-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.gym-autocomplete-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.gym-autocomplete-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-normal);
+    margin-bottom: 3px;
+}
+
+.gym-autocomplete-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+/* ── Shared tag pills ── */
+
+.gym-tag {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.gym-tag-category {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    opacity: 0.8;
+}
+
+.gym-tag-equipment {
+    background: var(--background-modifier-border);
+    color: var(--text-muted);
+}
+
+.gym-tag-target {
+    background: var(--background-secondary);
+    color: var(--text-muted);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.gym-tag-muscle {
+    background: var(--background-secondary);
+    color: var(--text-accent);
+}
+
+/* ── Exercise tags (workout view) ── */
+
+.gym-exercise-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.gym-exercise-tags .gym-tag {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+}
+
+/* ── Exercise header row (GIF left, info right) ── */
+
+.gym-exercise-header {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.gym-exercise-gif {
+    width: 90px;
+    height: 90px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.gym-exercise-header-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.gym-exercise-header-info .gym-exercise-name {
+    margin: 0 0 6px 0;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.gym-exercise-header-info .gym-exercise-note {
+    margin-bottom: 0;
+}
+
+.gym-exercise-delete-btn {
+    background: none;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 12px;
+}
+
+.gym-exercise-delete-btn:hover {
+    background: var(--background-modifier-error);
+}
+
+/* Settings set table */
+
+.gym-settings-set-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 8px 0;
+}
+
+.gym-settings-set-table th {
+    background: var(--background-secondary);
+    padding: 4px 6px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.gym-settings-set-table td {
+    padding: 2px 4px;
+    text-align: center;
+}
+
+.gym-set-input {
+    width: 64px;
+    padding: 3px 4px;
+    text-align: center;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 12px;
+}
+
+.gym-set-input:focus {
+    border-color: var(--interactive-accent);
+    outline: none;
+}
+
+/* Set action buttons */
+
+.gym-set-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.gym-set-actions button {
+    padding: 2px 10px;
+    font-size: 11px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.gym-set-actions button:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+/* Add buttons */
+
+.gym-add-exercise-btn {
+    margin: 4px 0 4px 16px;
+    padding: 4px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px dashed var(--background-modifier-border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.gym-add-exercise-btn:hover {
+    border-color: var(--interactive-accent);
+    color: var(--interactive-accent);
+}
+
+.gym-settings-add {
+    margin-top: 20px;
+}
+
+.gym-settings-add-btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 2px dashed var(--background-modifier-border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.gym-settings-add-btn:hover {
+    border-color: var(--interactive-accent);
+    color: var(--interactive-accent);
+}
+
+/* Drag and Drop Styles */
+.gym-exercise-card[draggable="true"] {
+    cursor: grab;
+}
+
+.gym-exercise-card[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+.gym-dragging {
+    opacity: 0.5;
+    background-color: var(--background-modifier-hover);
+}
+
+.gym-drag-over {
+    border: 2px dashed var(--interactive-accent);
+    background-color: var(--background-modifier-hover);
+}
+
+.gym-drag-handle {
+    cursor: grab;
+    padding: 0 8px;
+    color: var(--text-muted);
+    font-size: 16px;
+}
+
+.gym-drag-handle:hover {
+    color: var(--text-normal);
+}

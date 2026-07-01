@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run build
+
+      - name: Update versions.json
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          MIN_APP=$(node -p "require('./manifest.json').minAppVersion")
+
+          if [ -f versions.json ]; then
+            # Add/update the entry for this version
+            node -e "
+              const fs = require('fs');
+              const v = JSON.parse(fs.readFileSync('versions.json', 'utf8'));
+              v['$VERSION'] = '$MIN_APP';
+              fs.writeFileSync('versions.json', JSON.stringify(v, null, 2) + '\n');
+            "
+          else
+            echo '{}' > versions.json
+          fi
+
+      - name: Attest release assets
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            main.js
+            styles.css
+            manifest.json
+
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          echo "Version: $VERSION"
+
+          # Force tag to current commit to ensure correct source
+          git tag -f "$VERSION"
+          git push origin "$VERSION" --force
+
+          # Create or update release
+          if gh release view "$VERSION" &>/dev/null; then
+            echo "Release $VERSION already exists, uploading assets..."
+            gh release upload "$VERSION" main.js manifest.json styles.css --clobber
+          else
+            gh release create "$VERSION" \
+              --title "$VERSION" \
+              --generate-notes \
+              main.js manifest.json styles.css
+          fi
+
