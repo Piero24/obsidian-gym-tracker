@@ -106,6 +106,9 @@ export default class GymTrackerPlugin extends Plugin {
 // Settings Tab — template management
 // ═══════════════════════════════════════════════════
 
+let activeDragId: string | null = null;
+
+
 class GymTrackerSettingTab extends PluginSettingTab {
     plugin: GymTrackerPlugin;
 
@@ -245,7 +248,12 @@ class GymTrackerSettingTab extends PluginSettingTab {
                 render: (setting: Setting) => {
                     setting.addButton(btn => {
                         btn.setButtonText("Clear All Data");
-                        (btn as any).setDestructive();
+                        const destBtn = btn as unknown as { setDestructive?: () => void, setWarning: () => void };
+                        if (typeof destBtn.setDestructive === "function") {
+                            destBtn.setDestructive();
+                        } else {
+                            destBtn.setWarning();
+                        }
                         btn.onClick(async () => {
                                 if (await confirmAction(this.app, "Delete ALL templates and workout data? This cannot be undone.")) {
                                     await this.plugin.store.clearAllData();
@@ -529,11 +537,9 @@ class GymTrackerSettingTab extends PluginSettingTab {
     ): void {
         const exCard = container.createDiv("gym-exercise-card");
 
-        // Add drag attributes
-        exCard.setAttr("draggable", "true");
-
         // Drag and drop events
         exCard.ondragstart = (ev: DragEvent) => {
+            activeDragId = ex.id;
             exCard.addClass("gym-dragging");
             if (ev.dataTransfer) {
                 ev.dataTransfer.effectAllowed = "move";
@@ -541,6 +547,8 @@ class GymTrackerSettingTab extends PluginSettingTab {
             }
         };
         exCard.ondragend = () => {
+            activeDragId = null;
+            exCard.setAttr("draggable", "false");
             exCard.removeClass("gym-dragging");
         };
         exCard.ondragover = (ev: DragEvent) => {
@@ -561,9 +569,9 @@ class GymTrackerSettingTab extends PluginSettingTab {
             ev.stopPropagation();
             ev.preventDefault();
             exCard.removeClass("gym-drag-over");
+            exCard.setAttr("draggable", "false");
 
-            if (!ev.dataTransfer) return;
-            const draggedId = ev.dataTransfer.getData("text/plain");
+            const draggedId = activeDragId || (ev.dataTransfer ? ev.dataTransfer.getData("text/plain") : null);
             if (draggedId && draggedId !== ex.id) {
                 // Reorder in tpl.exercises
                 const fromIdx = tpl.exercises.findIndex(e => e.id === draggedId);
@@ -726,6 +734,9 @@ class GymTrackerSettingTab extends PluginSettingTab {
             cls: "gym-drag-handle",
             attr: { title: "Drag to reorder" }
         });
+        dragHandle.onmousedown = () => exCard.setAttr("draggable", "true");
+        dragHandle.onmouseup = () => exCard.setAttr("draggable", "false");
+        dragHandle.onmouseleave = () => exCard.setAttr("draggable", "false");
         dragHandle.onclick = (ev: MouseEvent) => ev.stopPropagation();
 
         // Body (collapsible — note + sets, collapsed by default)
