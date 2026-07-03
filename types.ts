@@ -14,7 +14,6 @@ export interface TemplateExercise {
     sets: TemplateSet[];
     // Dataset integration (optional)
     datasetId?: string;        // references ExerciseInfo.id from exercises dataset
-    gifUrl?: string;           // cached full URL to GIF preview
     category?: string;         // e.g. "chest", "back"
     equipment?: string;        // e.g. "barbell", "body weight"
     target?: string;           // primary target muscle

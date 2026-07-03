@@ -257,28 +257,12 @@ export class WorkoutView extends ItemView {
     private renderExerciseTable(container: HTMLElement, tplEx: TemplateExercise): void {
         const exDiv = container.createDiv("gym-exercise-block");
 
-        // Exercise header: GIF left, info right
-        const headerRow = exDiv.createDiv("gym-exercise-header");
-
-        // GIF preview (always visible, on the left)
-        if (tplEx.gifUrl) {
-            const gifImg = headerRow.createEl("img", {
-                cls: "gym-exercise-gif",
-                attr: { src: tplEx.gifUrl, loading: "lazy" },
-            });
-            gifImg.onerror = () => {
-                gifImg.addClass("gym-hidden");
-            };
-        }
-
-        // Info column (right side)
-        const infoCol = headerRow.createDiv("gym-exercise-header-info");
-
-        infoCol.createEl("h3", { text: `🏋️ ${tplEx.name}`, cls: "gym-exercise-name" });
+        const titleRow = exDiv.createDiv("gym-exercise-title-row");
+        titleRow.createEl("h3", { text: `🏋️ ${tplEx.name}`, cls: "gym-exercise-name" });
 
         // Dataset tags
         if (tplEx.category || tplEx.equipment || tplEx.target) {
-            const tagsDiv = infoCol.createDiv("gym-exercise-tags");
+            const tagsDiv = titleRow.createDiv("gym-exercise-tags");
             if (tplEx.category) {
                 tagsDiv.createSpan({ text: tplEx.category, cls: "gym-tag gym-tag-category" });
             }
@@ -294,7 +278,7 @@ export class WorkoutView extends ItemView {
         }
 
         // Exercise note
-        const exNoteDiv = infoCol.createDiv("gym-exercise-note");
+        const exNoteDiv = exDiv.createDiv("gym-exercise-note");
         exNoteDiv.createEl("label", { text: "📝 Note:" });
         const exNoteInput = exNoteDiv.createEl("input", {
             cls: "gym-exercise-note-input",

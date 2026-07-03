@@ -4,7 +4,7 @@ import { DataStore } from "./data/DataStore";
 import { CalendarView, CALENDAR_VIEW_TYPE } from "./views/CalendarView";
 import { WorkoutView, WORKOUT_VIEW_TYPE } from "./views/WorkoutView";
 import { WorkoutTemplate, TemplateExercise } from "./types";
-import { searchExercises, gifUrl, imageUrl } from "./data/exerciseDataset";
+import { searchExercises, getExerciseById } from "./data/exerciseDataset";
 import { todayStr } from "./utils/calendar";
 
 export default class GymTrackerPlugin extends Plugin {
@@ -111,6 +111,8 @@ let activeDragId: string | null = null;
 
 class GymTrackerSettingTab extends PluginSettingTab {
     plugin: GymTrackerPlugin;
+    collapsedTemplates: Set<string> = new Set();
+    expandedExercises: Set<string> = new Set();
 
     constructor(app: App, plugin: GymTrackerPlugin) {
         super(app, plugin);
@@ -491,7 +493,9 @@ class GymTrackerSettingTab extends PluginSettingTab {
         };
 
         // Body (collapsible)
-        const body = card.createDiv("gym-template-body");
+        const isCollapsed = this.collapsedTemplates.has(tpl.id);
+        const body = card.createDiv(isCollapsed ? "gym-template-body gym-collapsed" : "gym-template-body");
+        arrow.setText(isCollapsed ? "▶" : "▼");
 
         for (const ex of tpl.exercises) {
             this.renderExerciseCard(body, tpl, ex);
@@ -523,9 +527,11 @@ class GymTrackerSettingTab extends PluginSettingTab {
             if (collapsed) {
                 body.removeClass("gym-collapsed");
                 arrow.setText("▼");
+                this.collapsedTemplates.delete(tpl.id);
             } else {
                 body.addClass("gym-collapsed");
                 arrow.setText("▶");
+                this.collapsedTemplates.add(tpl.id);
             }
         };
     }
@@ -536,6 +542,20 @@ class GymTrackerSettingTab extends PluginSettingTab {
         ex: TemplateExercise
     ): void {
         const exCard = container.createDiv("gym-exercise-card");
+
+        // Single column row: content only (GIFs removed due to dataset deletion)
+        const exRow = exCard.createDiv("gym-exercise-row");
+
+        if (!ex.category || !ex.equipment) {
+            const results = searchExercises(ex.name, 1);
+            if (results.length > 0 && results[0].name.toLowerCase() === ex.name.toLowerCase()) {
+                ex.category = results[0].category;
+                ex.equipment = results[0].equipment;
+            }
+        }
+
+        // ── Right column: content ──
+        const contentCol = exRow.createDiv("gym-exercise-content-col");
 
         // Drag and drop events
         exCard.ondragstart = (ev: DragEvent) => {
@@ -586,8 +606,10 @@ class GymTrackerSettingTab extends PluginSettingTab {
         };
 
         // Header row (clickable to collapse)
-        const exHeader = exCard.createDiv("gym-exercise-header-row");
+        const exHeader = contentCol.createDiv("gym-exercise-header-row");
         const exArrow = exHeader.createSpan({ text: "▶", cls: "gym-collapse-arrow" });
+
+
         exHeader.createSpan({ text: ` ${ex.sets.length} sets`, cls: "gym-badge" });
 
         // Exercise name with autocomplete
@@ -599,8 +621,21 @@ class GymTrackerSettingTab extends PluginSettingTab {
         // Stop click on input from toggling collapse
         nameInput.onclick = (ev: MouseEvent) => ev.stopPropagation();
 
+        // Tags next to the input (sibling to acWrapper inside exHeader)
+        const tagsRow = exHeader.createDiv("gym-exercise-tags");
+        const refreshTags = () => {
+            tagsRow.empty();
+            if (ex.category) {
+                tagsRow.createSpan({ text: ex.category, cls: "gym-tag gym-tag-category" });
+            }
+            if (ex.equipment) {
+                tagsRow.createSpan({ text: ex.equipment, cls: "gym-tag gym-tag-equipment" });
+            }
+        };
+        refreshTags();
+
         // Dropdown for search results
-        const dropdown = acWrapper.createDiv("gym-autocomplete-dropdown");
+        const dropdown = acWrapper.createDiv("gym-autocomplete-dropdown gym-hidden");
         let selectedIdx = -1;
 
         const hideDropdown = () => {
@@ -623,11 +658,6 @@ class GymTrackerSettingTab extends PluginSettingTab {
                 const item = dropdown.createDiv("gym-autocomplete-item");
                 item.setAttr("data-index", String(i));
 
-                const img = item.createEl("img", {
-                    cls: "gym-autocomplete-thumb",
-                    attr: { src: imageUrl(r), loading: "lazy" },
-                });
-                img.onerror = () => { img.addClass("gym-hidden"); };
 
                 const info = item.createDiv("gym-autocomplete-info");
                 info.createEl("div", { text: r.name, cls: "gym-autocomplete-name" });
@@ -651,34 +681,49 @@ class GymTrackerSettingTab extends PluginSettingTab {
             nameInput.value = info.name;
             ex.name = info.name;
             ex.datasetId = info.id;
-            ex.gifUrl = gifUrl(info);
             ex.category = info.category;
             ex.equipment = info.equipment;
             ex.target = info.target;
             ex.muscleGroup = info.muscle_group;
             ex.secondaryMuscles = info.secondary_muscles;
+            refreshTags();
             void this.plugin.store.saveTemplate(tpl);
             hideDropdown();
         };
 
         nameInput.oninput = () => {
-            const results = searchExercises(nameInput.value, 6);
+            const results = searchExercises(nameInput.value, 50);
             showResults(results);
         };
 
         nameInput.onchange = async () => {
-            // If user typed manually (didn't click a dropdown item), save as plain text
+            // If user typed manually (didn't click a dropdown item), check if it matches dataset
             const val = nameInput.value.trim();
             if (val && val !== ex.name) {
                 ex.name = val;
-                // Clear dataset fields since user typed custom name
-                ex.datasetId = undefined;
-                ex.gifUrl = undefined;
-                ex.category = undefined;
-                ex.equipment = undefined;
-                ex.target = undefined;
-                ex.muscleGroup = undefined;
-                ex.secondaryMuscles = undefined;
+                const results = searchExercises(val, 1);
+                if (results.length > 0 && results[0].name.toLowerCase() === val.toLowerCase()) {
+                    const info = results[0];
+                    ex.datasetId = info.id;
+                    ex.category = info.category;
+                    ex.equipment = info.equipment;
+                    ex.target = info.target;
+                    ex.muscleGroup = info.muscle_group;
+                    ex.secondaryMuscles = info.secondary_muscles;
+                    
+                    refreshTags();
+                } else {
+                    // Clear dataset fields since user typed custom name
+                    ex.datasetId = undefined;
+
+                    ex.category = undefined;
+                    ex.equipment = undefined;
+                    ex.target = undefined;
+                    ex.muscleGroup = undefined;
+                    ex.secondaryMuscles = undefined;
+                    
+                    refreshTags();
+                }
                 await this.plugin.store.saveTemplate(tpl);
             }
             hideDropdown();
@@ -740,7 +785,9 @@ class GymTrackerSettingTab extends PluginSettingTab {
         dragHandle.onclick = (ev: MouseEvent) => ev.stopPropagation();
 
         // Body (collapsible — note + sets, collapsed by default)
-        const exBody = exCard.createDiv("gym-exercise-body gym-collapsed");
+        const isExpanded = this.expandedExercises.has(ex.id);
+        const exBody = contentCol.createDiv(isExpanded ? "gym-exercise-body" : "gym-exercise-body gym-collapsed");
+        exArrow.setText(isExpanded ? "▼" : "▶");
 
         // Exercise note
         const noteInput = exBody.createEl("input", {
@@ -833,9 +880,11 @@ class GymTrackerSettingTab extends PluginSettingTab {
             if (collapsed) {
                 exBody.removeClass("gym-collapsed");
                 exArrow.setText("▼");
+                this.expandedExercises.add(ex.id);
             } else {
                 exBody.addClass("gym-collapsed");
                 exArrow.setText("▶");
+                this.expandedExercises.delete(ex.id);
             }
         };
     }

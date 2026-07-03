@@ -284,9 +284,10 @@
 }
 
 .gym-exercise-name {
-    margin: 0 0 10px 0;
+    margin: 0;
     font-size: 16px;
     font-weight: 600;
+    color: var(--text-normal);
 }
 
 /* Exercise note */
@@ -510,7 +511,6 @@
     margin-bottom: 20px;
     border: 1px solid var(--background-modifier-border);
     border-radius: 8px;
-    overflow: hidden;
 }
 
 .gym-template-header {
@@ -562,7 +562,24 @@
     margin: 8px 0;
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
-    overflow: hidden;
+    /* Removed overflow: hidden so autocomplete dropdown can spill out */
+}
+
+
+.gym-exercise-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+
+
+.gym-exercise-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 12px;
 }
 
 .gym-exercise-header-row {
@@ -573,7 +590,10 @@
     cursor: pointer;
     user-select: none;
     background: var(--background-primary);
+    border-radius: 6px; /* Added because we removed overflow:hidden from parent */
 }
+
+
 
 .gym-exercise-header-row:hover {
     background: var(--background-modifier-hover);
@@ -600,10 +620,12 @@
 .gym-autocomplete-wrapper {
     position: relative;
     flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .gym-autocomplete-dropdown {
-    display: none;
     position: absolute;
     top: 100%;
     left: 0;
@@ -636,13 +658,6 @@
     background: var(--background-modifier-hover);
 }
 
-.gym-autocomplete-thumb {
-    width: 44px;
-    height: 44px;
-    border-radius: 4px;
-    object-fit: cover;
-    flex-shrink: 0;
-}
 
 .gym-autocomplete-info {
     flex: 1;
@@ -697,50 +712,12 @@
 
 /* ── Exercise tags (workout view) ── */
 
-.gym-exercise-tags {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-bottom: 10px;
-}
+
 
 .gym-exercise-tags .gym-tag {
     padding: 3px 10px;
     border-radius: 12px;
     font-size: 11px;
-}
-
-/* ── Exercise header row (GIF left, info right) ── */
-
-.gym-exercise-header {
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    margin-bottom: 12px;
-}
-
-.gym-exercise-gif {
-    width: 90px;
-    height: 90px;
-    border-radius: 8px;
-    object-fit: cover;
-    flex-shrink: 0;
-    border: 1px solid var(--background-modifier-border);
-}
-
-.gym-exercise-header-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.gym-exercise-header-info .gym-exercise-name {
-    margin: 0 0 6px 0;
-    font-size: 15px;
-    font-weight: 600;
-}
-
-.gym-exercise-header-info .gym-exercise-note {
-    margin-bottom: 0;
 }
 
 .gym-exercise-delete-btn {
@@ -750,6 +727,15 @@
     cursor: pointer;
     padding: 2px 6px;
     font-size: 12px;
+}
+
+.gym-drag-handle {
+    cursor: grab;
+    color: var(--text-muted);
+    font-size: 16px;
+}
+.gym-drag-handle:active {
+    cursor: grabbing;
 }
 
 .gym-exercise-delete-btn:hover {

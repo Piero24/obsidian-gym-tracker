@@ -8,13 +8,16 @@ export interface ExerciseInfo {
     target: string;
     muscle_group: string;
     secondary_muscles: string[];
-    gif_url: string;
-    image: string;
 }
 
-const BASE_URL = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/";
-
 const dataset: ExerciseInfo[] = exercises;
+
+/**
+ * Get an exercise by its dataset ID.
+ */
+export function getExerciseById(id: string): ExerciseInfo | undefined {
+    return dataset.find(ex => ex.id === id);
+}
 
 /**
  * Search exercises by name (case-insensitive substring match).
@@ -48,20 +51,4 @@ export function searchExercises(query: string, limit: number = 8): ExerciseInfo[
 
     results.sort((a, b) => b.score - a.score);
     return results.slice(0, limit).map(r => r.exercise);
-}
-
-/**
- * Build the full GitHub raw URL for an exercise GIF.
- */
-export function gifUrl(exercise: ExerciseInfo): string {
-    if (!exercise.gif_url) return "";
-    return BASE_URL + exercise.gif_url;
-}
-
-/**
- * Build the full GitHub raw URL for an exercise thumbnail image.
- */
-export function imageUrl(exercise: ExerciseInfo): string {
-    if (!exercise.image) return "";
-    return BASE_URL + exercise.image;
 }
