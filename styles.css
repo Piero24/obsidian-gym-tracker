@@ -9,6 +9,14 @@
     flex-direction: column;
     gap: 10px;
     height: 100%;
+    overflow-y: auto;
+}
+
+.gym-calendar-container::after {
+    content: "";
+    display: block;
+    height: 150px;
+    flex-shrink: 0;
 }
 
 /* ── Header ── */
@@ -184,6 +192,13 @@
     padding-bottom: 150px;
     max-height: 100%;
     overflow-y: auto;
+}
+
+.gym-workout-modal::after {
+    content: "";
+    display: block;
+    height: 150px;
+    flex-shrink: 0;
 }
 
 .gym-workout-title {
@@ -396,13 +411,13 @@
 }
 
 .gym-input-num {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 56px;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 60px !important;
     padding: 5px 4px;
     text-align: center;
     border: 1px solid var(--interactive-accent);
-    border-radius: 6px;
+    border-radius: 6px !important;
     background: var(--background-primary);
     color: var(--text-normal);
     font-size: 13px;
@@ -482,6 +497,14 @@
 
 .gym-settings {
     padding: 20px 16px 150px 16px;
+    overflow-y: auto;
+}
+
+.gym-settings::after {
+    content: "";
+    display: block;
+    height: 150px;
+    flex-shrink: 0;
 }
 
 .gym-settings h2 {
@@ -622,11 +645,21 @@
 
 @media (max-width: 600px) {
     .gym-exercise-header-row {
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: auto auto 1fr auto auto;
+        grid-template-rows: auto auto;
+        align-items: center;
+        gap: 8px;
     }
+    .gym-collapse-arrow { grid-column: 1; grid-row: 1; }
+    .gym-badge { grid-column: 2; grid-row: 1; }
+    .gym-exercise-tags { grid-column: 3; grid-row: 1; justify-content: flex-start; }
+    .gym-exercise-delete-btn { grid-column: 4; grid-row: 1; margin: 0; }
+    .gym-drag-handle { grid-column: 5; grid-row: 1; }
+    
     .gym-autocomplete-wrapper {
-        flex-basis: 100%;
-        order: 10;
+        grid-column: 1 / -1;
+        grid-row: 2;
         margin-top: 4px;
     }
 }
@@ -804,13 +837,13 @@
 }
 
 .gym-set-input {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 64px;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 64px !important;
     padding: 3px 4px;
     text-align: center;
     border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
+    border-radius: 4px !important;
     background: var(--background-primary);
     color: var(--text-normal);
     font-size: 12px;
