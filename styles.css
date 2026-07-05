@@ -4,7 +4,7 @@
 
 .gym-calendar-container {
     padding: 12px;
-    padding-bottom: 100px;
+    padding-bottom: 150px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -181,7 +181,7 @@
 
 .gym-workout-modal {
     padding: 20px;
-    padding-bottom: 100px;
+    padding-bottom: 150px;
     max-height: 100%;
     overflow-y: auto;
 }
@@ -207,6 +207,21 @@
     background: var(--background-secondary);
     border-radius: 8px;
     margin-bottom: 20px;
+}
+
+@media (max-width: 600px) {
+    .gym-template-picker {
+        flex-wrap: wrap;
+    }
+    .gym-template-picker label {
+        flex-basis: 100%;
+    }
+    .gym-template-picker select {
+        flex: 1;
+    }
+    .gym-load-template-btn {
+        flex-shrink: 0;
+    }
 }
 
 .gym-template-picker label {
@@ -381,7 +396,9 @@
 }
 
 .gym-input-num {
-    width: 48px;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 56px;
     padding: 5px 4px;
     text-align: center;
     border: 1px solid var(--interactive-accent);
@@ -464,7 +481,7 @@
    ═══════════════════════════════════════════════════ */
 
 .gym-settings {
-    padding: 20px 16px 100px 16px;
+    padding: 20px 16px 150px 16px;
 }
 
 .gym-settings h2 {
@@ -601,6 +618,17 @@
     user-select: none;
     background: var(--background-primary);
     border-radius: 6px; /* Added because we removed overflow:hidden from parent */
+}
+
+@media (max-width: 600px) {
+    .gym-exercise-header-row {
+        flex-wrap: wrap;
+    }
+    .gym-autocomplete-wrapper {
+        flex-basis: 100%;
+        order: 10;
+        margin-top: 4px;
+    }
 }
 
 
@@ -776,6 +804,8 @@
 }
 
 .gym-set-input {
+    -webkit-appearance: none;
+    appearance: none;
     width: 64px;
     padding: 3px 4px;
     text-align: center;

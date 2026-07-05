@@ -40,11 +40,22 @@ export class DataStore {
 
         // Read from whichever backend the settings point to
         let raw: Partial<GymTrackerData> | undefined;
+        let templatesFromSeparateFile: WorkoutTemplate[] | undefined;
+
         if (bootSettings.storageMode === 'vault') {
             const path = this.getVaultPath(bootSettings);
             if (await this.plugin.app.vault.adapter.exists(path)) {
                 const text = await this.plugin.app.vault.adapter.read(path);
                 raw = this.parseFile(text, path) ?? undefined;
+            }
+            
+            const templatesPath = this.getTemplatesVaultPath(bootSettings);
+            if (await this.plugin.app.vault.adapter.exists(templatesPath)) {
+                const text = await this.plugin.app.vault.adapter.read(templatesPath);
+                const tRaw = this.parseFile(text, templatesPath);
+                if (tRaw && tRaw.templates) {
+                    templatesFromSeparateFile = tRaw.templates;
+                }
             }
         } else {
             raw = pluginData;
@@ -57,6 +68,11 @@ export class DataStore {
                 settings: this.buildSettings(raw.settings),
                 sessions: { ...(raw.sessions || {}) },
             };
+        }
+
+        // If templates were loaded from a separate file, override the ones from data.json
+        if (templatesFromSeparateFile) {
+            this.data.templates = templatesFromSeparateFile;
         }
     }
 
@@ -88,6 +104,12 @@ export class DataStore {
         const s = settings || this.data.settings;
         const ext = s.showInGraph ? 'md' : 'json';
         return normalizePath(`${s.vaultFolder}/${s.vaultFileName}.${ext}`);
+    }
+
+    getTemplatesVaultPath(settings?: GymSettings): string {
+        const s = settings || this.data.settings;
+        const ext = s.showInGraph ? 'md' : 'json';
+        return normalizePath(`${s.vaultFolder}/templates.${ext}`);
     }
 
     private parseFile(text: string, path: string): Partial<GymTrackerData> | null {
@@ -134,9 +156,16 @@ export class DataStore {
                     }
                 }
 
-                // Write file
-                const content = this.buildFile(data);
-                await vault.adapter.write(path, content);
+                // Write templates to separate file
+                const templatesPath = this.getTemplatesVaultPath(data.settings);
+                const templatesData = { ...data, sessions: {} };
+                const templatesContent = this.buildFile(templatesData);
+                await vault.adapter.write(templatesPath, templatesContent);
+
+                // Write main data file (without templates)
+                const mainData = { ...data, templates: [] };
+                const mainContent = this.buildFile(mainData);
+                await vault.adapter.write(path, mainContent);
                 return;
             } catch (err) {
                 // Vault write failed — fall back to plugin storage so data is never lost
