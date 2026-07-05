@@ -4,6 +4,7 @@
 
 .gym-calendar-container {
     padding: 12px;
+    padding-bottom: 100px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -180,6 +181,7 @@
 
 .gym-workout-modal {
     padding: 20px;
+    padding-bottom: 100px;
     max-height: 100%;
     overflow-y: auto;
 }
@@ -462,7 +464,7 @@
    ═══════════════════════════════════════════════════ */
 
 .gym-settings {
-    padding: 20px 16px 24px 16px;
+    padding: 20px 16px 100px 16px;
 }
 
 .gym-settings h2 {
@@ -580,6 +582,14 @@
     align-items: center;
     margin-bottom: 8px;
     gap: 12px;
+}
+
+@media (max-width: 600px) {
+    .gym-exercise-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
 }
 
 .gym-exercise-header-row {

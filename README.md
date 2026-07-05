@@ -1,12 +1,10 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Piero24/obsidian-gym-tracker/main/assets/calendar_view.PNG" width="200" alt="Icon">
+  <img src="https://raw.githubusercontent.com/Piero24/obsidian-gym-tracker/main/assets/logo.png" width="300" alt="Logo">
   <h1>🏋️‍♂️ Gym Workout Tracker for Obsidian</h1>
   <p><b>Your completely private, friction-free fitness companion right inside your second brain.</b></p>
   
-  <p>
-    <a href="https://github.com/Piero24/obsidian-gym-tracker/releases"><img src="https://img.shields.io/github/v/release/Piero24/obsidian-gym-tracker?style=for-the-badge&color=success" alt="Release"></a>
-    <a href="https://github.com/Piero24/obsidian-gym-tracker/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Piero24/obsidian-gym-tracker?style=for-the-badge" alt="License"></a>
-  </p>
+  [![Release](https://img.shields.io/github/v/release/piero24/obsidian-gym-tracker?style=for-the-badge)](https://github.com/piero24/obsidian-gym-tracker/releases)
+  [![Downloads](https://img.shields.io/github/downloads/piero24/obsidian-gym-tracker/total?style=for-the-badge)](https://github.com/piero24/obsidian-gym-tracker/releases)
 </div>
 
 <br/>
@@ -25,6 +23,11 @@ Zero vault clutter, zero subscriptions, and complete offline privacy.
 <br/>
 
 - 📅 **Interactive Calendar:** A gorgeous monthly calendar that marks your workout days with subtle indicators. Just click a date to jump straight into logging!
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/Piero24/obsidian-gym-tracker/main/assets/calendar_view.PNG" width="800" alt="Calendar View">
+</div>
+
 - 📚 **1,300+ Exercises Database:** Search and autocomplete from a massive database of exercises. Includes **exercise names and tags** for equipment and muscle groups.
 - 📋 **Smart Templates:** Build reusable templates like "Push Day", "Legs", or "Cardio". Reorder exercises effortlessly with drag-and-drop.
 - 📈 **"Last Time" Auto-Fill:** Let the app remember for you. Every new set automatically pre-fills your numbers from the last session so you always know what you need to beat.

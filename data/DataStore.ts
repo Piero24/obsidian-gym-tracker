@@ -128,24 +128,15 @@ export class DataStore {
                     let current = '';
                     for (const part of parts) {
                         current = current ? `${current}/${part}` : part;
-                        try {
-                            if (!vault.getFolderByPath(current)) {
-                                await vault.createFolder(current);
-                            }
-                        } catch {
-                            // Folder may already exist; continue
+                        if (!(await vault.adapter.exists(current))) {
+                            await vault.adapter.mkdir(current);
                         }
                     }
                 }
 
                 // Write file
                 const content = this.buildFile(data);
-                const existing = vault.getFileByPath(path);
-                if (existing) {
-                    await vault.modify(existing, content);
-                } else {
-                    await vault.create(path, content);
-                }
+                await vault.adapter.write(path, content);
                 return;
             } catch (err) {
                 // Vault write failed — fall back to plugin storage so data is never lost
