@@ -74,7 +74,7 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 1px;
-    flex: 1;
+    flex: 1 0 auto;
     align-content: start;
     background: var(--background-secondary);
     border: 1px solid var(--background-modifier-border);
