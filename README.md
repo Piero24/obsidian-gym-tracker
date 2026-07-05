@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Piero24/obsidian-gym-tracker/main/assets/calendar_view.png" width="200" alt="Icon">
+  <img src="https://raw.githubusercontent.com/Piero24/obsidian-gym-tracker/main/assets/calendar_view.PNG" width="200" alt="Icon">
   <h1>🏋️‍♂️ Gym Workout Tracker for Obsidian</h1>
   <p><b>Your completely private, friction-free fitness companion right inside your second brain.</b></p>
   

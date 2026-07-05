@@ -2,7 +2,8 @@ name: Release
 
 on:
   push:
-    branches: [main]
+    tags:
+      - '*'
 
 jobs:
   release:
@@ -25,11 +26,11 @@ jobs:
           MIN_APP=$(node -p "require('./manifest.json').minAppVersion")
 
           if [ -f versions.json ]; then
-            # Add/update the entry for this version
-            node -e "
+            # Add/update the entry for this version passing vars through env
+            VERSION=$VERSION MIN_APP=$MIN_APP node -e "
               const fs = require('fs');
               const v = JSON.parse(fs.readFileSync('versions.json', 'utf8'));
-              v['$VERSION'] = '$MIN_APP';
+              v[process.env.VERSION] = process.env.MIN_APP;
               fs.writeFileSync('versions.json', JSON.stringify(v, null, 2) + '\n');
             "
           else
@@ -50,10 +51,6 @@ jobs:
         run: |
           VERSION=$(node -p "require('./manifest.json').version")
           echo "Version: $VERSION"
-
-          # Force tag to current commit to ensure correct source
-          git tag -f "$VERSION"
-          git push origin "$VERSION" --force
 
           # Create or update release
           if gh release view "$VERSION" &>/dev/null; then

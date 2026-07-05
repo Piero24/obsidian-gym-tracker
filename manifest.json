@@ -1,7 +1,7 @@
 {
   "id": "gym-workout-tracker",
   "name": "Gym Workout Tracker",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "minAppVersion": "1.7.2",
   "description": "Track gym workouts with templates, calendar view, and quick data entry. No vault clutter — all data in one file.",
   "author": "Piero24",
