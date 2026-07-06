@@ -413,7 +413,9 @@
 .gym-input-num {
     -webkit-appearance: none !important;
     appearance: none !important;
-    width: 60px !important;
+    width: 100% !important;
+    min-width: 76px;
+    max-width: 120px;
     padding: 5px 4px;
     text-align: center;
     border: 1px solid var(--interactive-accent);
@@ -839,7 +841,9 @@
 .gym-set-input {
     -webkit-appearance: none !important;
     appearance: none !important;
-    width: 64px !important;
+    width: 100% !important;
+    min-width: 76px;
+    max-width: 120px;
     padding: 3px 4px;
     text-align: center;
     border: 1px solid var(--background-modifier-border);
