@@ -4,7 +4,6 @@ import { Plugin, normalizePath } from "obsidian";
 const DEFAULT_SETTINGS: GymSettings = {
     weekStartDay: 'monday',
     weightUnit: 'kg',
-    storageMode: 'plugin',
     vaultFolder: '.gym-tracker',
     vaultFileName: 'data',
     showInGraph: false,
@@ -42,23 +41,21 @@ export class DataStore {
         let raw: Partial<GymTrackerData> | undefined;
         let templatesFromSeparateFile: WorkoutTemplate[] | undefined;
 
-        if (bootSettings.storageMode === 'vault') {
-            const path = this.getVaultPath(bootSettings);
-            if (await this.plugin.app.vault.adapter.exists(path)) {
-                const text = await this.plugin.app.vault.adapter.read(path);
-                raw = this.parseFile(text, path) ?? undefined;
-            }
-            
-            const templatesPath = this.getTemplatesVaultPath(bootSettings);
-            if (await this.plugin.app.vault.adapter.exists(templatesPath)) {
-                const text = await this.plugin.app.vault.adapter.read(templatesPath);
-                const tRaw = this.parseFile(text, templatesPath);
-                if (tRaw && tRaw.templates) {
-                    templatesFromSeparateFile = tRaw.templates;
-                }
-            }
+        const path = this.getVaultPath(bootSettings);
+        if (await this.plugin.app.vault.adapter.exists(path)) {
+            const text = await this.plugin.app.vault.adapter.read(path);
+            raw = this.parseFile(text, path) ?? undefined;
         } else {
-            raw = pluginData;
+            raw = pluginData; // Initial migration from plugin data
+        }
+        
+        const templatesPath = this.getTemplatesVaultPath(bootSettings);
+        if (await this.plugin.app.vault.adapter.exists(templatesPath)) {
+            const text = await this.plugin.app.vault.adapter.read(templatesPath);
+            const tRaw = this.parseFile(text, templatesPath);
+            if (tRaw && tRaw.templates) {
+                templatesFromSeparateFile = tRaw.templates;
+            }
         }
 
         if (raw) {
@@ -137,45 +134,38 @@ export class DataStore {
     }
 
     private async writeStorage(data: GymTrackerData): Promise<void> {
-        const mode = data.settings.storageMode;
-        if (mode === 'vault') {
-            try {
-                const vault = this.plugin.app.vault;
-                const path = this.getVaultPath(data.settings);
-                const dir = path.split('/').slice(0, -1).join('/');
+        try {
+            const vault = this.plugin.app.vault;
+            const path = this.getVaultPath(data.settings);
+            const dir = path.split('/').slice(0, -1).join('/');
 
-                // Ensure folder hierarchy exists
-                if (dir) {
-                    const parts = dir.split('/');
-                    let current = '';
-                    for (const part of parts) {
-                        current = current ? `${current}/${part}` : part;
-                        if (!(await vault.adapter.exists(current))) {
-                            await vault.adapter.mkdir(current);
-                        }
+            // Ensure folder hierarchy exists
+            if (dir) {
+                const parts = dir.split('/');
+                let current = '';
+                for (const part of parts) {
+                    current = current ? `${current}/${part}` : part;
+                    if (!(await vault.adapter.exists(current))) {
+                        await vault.adapter.mkdir(current);
                     }
                 }
-
-                // Write templates to separate file
-                const templatesPath = this.getTemplatesVaultPath(data.settings);
-                const templatesData = { ...data, sessions: {} };
-                const templatesContent = this.buildFile(templatesData);
-                await vault.adapter.write(templatesPath, templatesContent);
-
-                // Write main data file (without templates)
-                const mainData = { ...data, templates: [] };
-                const mainContent = this.buildFile(mainData);
-                await vault.adapter.write(path, mainContent);
-                return;
-            } catch (err) {
-                // Vault write failed — fall back to plugin storage so data is never lost
-                console.warn('Gym Tracker: vault write failed, falling back to plugin storage:', err);
-                await this.plugin.saveData(data);
-                return;
             }
+
+            // Write templates to separate file
+            const templatesPath = this.getTemplatesVaultPath(data.settings);
+            const templatesData = { ...data, sessions: {} };
+            const templatesContent = this.buildFile(templatesData);
+            await vault.adapter.write(templatesPath, templatesContent);
+
+            // Write main data file (without templates)
+            const mainData = { ...data, templates: [] };
+            const mainContent = this.buildFile(mainData);
+            await vault.adapter.write(path, mainContent);
+        } catch (err) {
+            // Vault write failed — fall back to plugin storage so data is never lost
+            console.warn('Gym Tracker: vault write failed, falling back to plugin storage:', err);
+            await this.plugin.saveData(data);
         }
-        // plugin mode
-        await this.plugin.saveData(data);
     }
 
     getData(): GymTrackerData {

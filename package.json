@@ -1,6 +1,6 @@
 {
   "name": "obsidian-gym-tracker",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "private": true,
   "description": "Gym workout tracker for Obsidian — calendar view, templates, and quick workout logging",
   "main": "main.js",
