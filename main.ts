@@ -170,25 +170,7 @@ class GymTrackerSettingTab extends PluginSettingTab {
                 },
             },
 
-            // Storage mode
-            {
-                name: "Storage location",
-                desc: "Plugin data is not synced. Vault folder syncs via Obsidian Sync / iCloud.",
-                render: (setting: Setting) => {
-                    const settings = this.plugin.store.getSettings();
-                    setting.addDropdown(dropdown => {
-                        dropdown
-                            .addOption('plugin', 'Plugin data')
-                            .addOption('vault', 'Vault folder')
-                            .setValue(settings.storageMode)
-                            .onChange(async (value: string) => {
-                                settings.storageMode = value as 'plugin' | 'vault';
-                                await this.plugin.store.saveSettings(settings);
-                                this.refreshTab();
-                            });
-                    });
-                },
-            },
+
 
             // Vault folder
             {

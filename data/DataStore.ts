@@ -33,20 +33,18 @@ export class DataStore {
     }
 
     async load(): Promise<void> {
-        // Bootstrap: always read plugin data first to discover storage mode
-        const pluginData = await this.plugin.loadData() as Partial<GymTrackerData> | undefined;
-        const bootSettings: GymSettings = this.buildSettings(pluginData?.settings);
-
-        // Read from whichever backend the settings point to
         let raw: Partial<GymTrackerData> | undefined;
         let templatesFromSeparateFile: WorkoutTemplate[] | undefined;
+
+        const bootSettings: GymSettings = { ...DEFAULT_SETTINGS };
 
         const path = this.getVaultPath(bootSettings);
         if (await this.plugin.app.vault.adapter.exists(path)) {
             const text = await this.plugin.app.vault.adapter.read(path);
             raw = this.parseFile(text, path) ?? undefined;
-        } else {
-            raw = pluginData; // Initial migration from plugin data
+            if (raw && raw.settings) {
+                Object.assign(bootSettings, this.buildSettings(raw.settings));
+            }
         }
         
         const templatesPath = this.getTemplatesVaultPath(bootSettings);
@@ -162,9 +160,7 @@ export class DataStore {
             const mainContent = this.buildFile(mainData);
             await vault.adapter.write(path, mainContent);
         } catch (err) {
-            // Vault write failed — fall back to plugin storage so data is never lost
-            console.warn('Gym Tracker: vault write failed, falling back to plugin storage:', err);
-            await this.plugin.saveData(data);
+            console.error('Gym Tracker: vault write failed:', err);
         }
     }
 
@@ -291,22 +287,11 @@ export class DataStore {
     }
 
     async saveSettings(settings: GymSettings): Promise<void> {
-        const oldMode = this.data.settings.storageMode;
-        const newMode = settings.storageMode;
         const oldUnit = this.data.settings.weightUnit;
         const newUnit = settings.weightUnit;
 
         if (oldUnit !== newUnit) {
             this.convertWeights(oldUnit, newUnit);
-        }
-
-        // If storage mode changed, migrate data from old backend to new
-        if (oldMode !== newMode) {
-            const tempSettings = { ...settings };
-            const prev = this.data.settings;
-            this.data.settings = tempSettings;
-            await this.writeStorage(this.data);
-            this.data.settings = prev;
         }
 
         this.data.settings = settings;

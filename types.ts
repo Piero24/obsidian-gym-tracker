@@ -57,7 +57,6 @@ export interface WorkoutSession {
 export interface GymSettings {
     weekStartDay: 'monday' | 'sunday';
     weightUnit: 'kg' | 'lbs';
-    storageMode: 'plugin' | 'vault';
     vaultFolder: string;        // e.g. ".gym-tracker" to hide, "gym-tracker" to show
     vaultFileName: string;      // e.g. "data" (no extension)
     showInGraph: boolean;       // true = .md frontmatter, false = .json
