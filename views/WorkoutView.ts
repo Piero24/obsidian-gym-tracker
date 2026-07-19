@@ -24,6 +24,7 @@ export class WorkoutView extends ItemView {
     // exerciseId → (setNumber → { reps, weight })
     private todayData: Map<string, Map<number, { reps: number; weight: number }>> = new Map();
     private isDeleted: boolean = false;
+    private saveTimeout: number | null = null;
 
     constructor(leaf: WorkspaceLeaf, store: DataStore) {
         super(leaf);
@@ -68,6 +69,19 @@ export class WorkoutView extends ItemView {
         container.addClass("gym-workout-modal");
 
         if (!this.date) return;
+
+        // Cancel any pending debounced save from the previous view
+        if (this.saveTimeout !== null) {
+            window.clearTimeout(this.saveTimeout);
+            this.saveTimeout = null;
+        }
+
+        // Reset form state for the new date so stale data never leaks across views
+        this.template = null;
+        this.sessionId = "";
+        this.sessionNote = "";
+        this.exerciseNotes = new Map();
+        this.todayData = new Map();
 
         // Title
         container.createEl("h2", {
@@ -212,9 +226,9 @@ export class WorkoutView extends ItemView {
             attr: { rows: "2", placeholder: "How are you feeling today?" },
         });
         noteInput.value = this.sessionNote;
-        noteInput.onchange = () => {
+        noteInput.oninput = () => {
             this.sessionNote = noteInput.value;
-            void this.autoSave();
+            this.scheduleAutoSave();
         };
 
         // Exercises
@@ -229,7 +243,10 @@ export class WorkoutView extends ItemView {
             text: "✅ Done",
             cls: "gym-save-btn",
         });
-        closeBtn.onclick = () => this.leaf.detach();
+        closeBtn.onclick = async () => {
+            await this.flushSave();
+            this.leaf.detach();
+        };
 
         // Delete button (only for existing sessions)
         const existingSession = this.store.getSession(this.date);
@@ -285,9 +302,9 @@ export class WorkoutView extends ItemView {
             attr: { placeholder: "e.g. warm-up with empty bar" },
         });
         exNoteInput.value = this.exerciseNotes.get(tplEx.id) || "";
-        exNoteInput.onchange = () => {
+        exNoteInput.oninput = () => {
             this.exerciseNotes.set(tplEx.id, exNoteInput.value);
-            void this.autoSave();
+            this.scheduleAutoSave();
         };
 
         // Table (scrollable on narrow screens)
@@ -348,7 +365,7 @@ export class WorkoutView extends ItemView {
                 attr: { type: "number", min: "0", max: "999" },
             });
             repInput.value = String(today.reps);
-            repInput.onchange = () => this.updateTodayData(
+            repInput.oninput = () => this.updateTodayData(
                 tplEx.id, sn, Number(repInput.value), today.weight
             );
 
@@ -371,7 +388,7 @@ export class WorkoutView extends ItemView {
                 attr: { type: "number", min: "0", max: "9999", step: "0.5" },
             });
             kgInput.value = String(today.weight);
-            kgInput.onchange = () => this.updateTodayData(
+            kgInput.oninput = () => this.updateTodayData(
                 tplEx.id, sn, today.reps, Number(kgInput.value)
             );
 
@@ -395,11 +412,24 @@ export class WorkoutView extends ItemView {
             this.todayData.set(exerciseId, setMap);
         }
         setMap.set(setNumber, { reps, weight });
-        void this.autoSave();
+        this.scheduleAutoSave();
     }
 
     // ── Auto-save ──
 
+    /** Schedule a debounced save. Every call resets the timer so rapid
+     *  changes (e.g. typing in an input field) only trigger one write. */
+    private scheduleAutoSave(): void {
+        if (this.saveTimeout !== null) {
+            window.clearTimeout(this.saveTimeout);
+        }
+        this.saveTimeout = window.setTimeout(() => {
+            this.saveTimeout = null;
+            void this.autoSave();
+        }, 300);
+    }
+
+    /** Persist the current form state to storage immediately. */
     private async autoSave(): Promise<void> {
         if (!this.template || this.isDeleted) return;
 
@@ -441,9 +471,19 @@ export class WorkoutView extends ItemView {
         }
     }
 
-    async onClose(): Promise<void> {
-        // Final save on close in case there are unsaved changes
+    /** Cancel any pending debounced save and persist immediately.
+     *  Called when the view is closed so no data is ever lost. */
+    private async flushSave(): Promise<void> {
+        if (this.saveTimeout !== null) {
+            window.clearTimeout(this.saveTimeout);
+            this.saveTimeout = null;
+        }
         await this.autoSave();
+    }
+
+    async onClose(): Promise<void> {
+        // Flush any pending debounced save immediately on close
+        await this.flushSave();
     }
 
     // ── Helpers ──
