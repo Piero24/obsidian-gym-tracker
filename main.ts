@@ -113,6 +113,7 @@ class GymTrackerSettingTab extends PluginSettingTab {
     plugin: GymTrackerPlugin;
     collapsedTemplates: Set<string> = new Set();
     expandedExercises: Set<string> = new Set();
+    private saveTimeout: number | null = null;
 
     constructor(app: App, plugin: GymTrackerPlugin) {
         super(app, plugin);
@@ -127,6 +128,26 @@ class GymTrackerSettingTab extends PluginSettingTab {
             const selfDisplay = this as unknown as { display: () => void };
             selfDisplay.display();
         }
+    }
+
+    /** Schedule a debounced template save. Every call resets the timer. */
+    private scheduleSave(tpl: WorkoutTemplate): void {
+        if (this.saveTimeout !== null) {
+            window.clearTimeout(this.saveTimeout);
+        }
+        this.saveTimeout = window.setTimeout(() => {
+            this.saveTimeout = null;
+            void this.plugin.store.saveTemplate(tpl);
+        }, 400);
+    }
+
+    /** Cancel any pending debounced save and persist immediately. */
+    private async flushSave(tpl: WorkoutTemplate): Promise<void> {
+        if (this.saveTimeout !== null) {
+            window.clearTimeout(this.saveTimeout);
+            this.saveTimeout = null;
+        }
+        await this.plugin.store.saveTemplate(tpl);
     }
 
     getSettingDefinitions(): SettingDefinitionItem[] {
@@ -441,9 +462,9 @@ class GymTrackerSettingTab extends PluginSettingTab {
             cls: "gym-template-name-input",
             attr: { type: "text", value: tpl.name },
         });
-        nameInput.onchange = async () => {
+        nameInput.oninput = () => {
             tpl.name = nameInput.value;
-            await this.plugin.store.saveTemplate(tpl);
+            this.scheduleSave(tpl);
         };
         // Stop click on input from toggling collapse
         nameInput.onclick = (ev: MouseEvent) => ev.stopPropagation();
@@ -454,6 +475,7 @@ class GymTrackerSettingTab extends PluginSettingTab {
         });
         delBtn.onclick = async (ev: MouseEvent) => {
             ev.stopPropagation();
+            await this.flushSave(tpl);
             await this.plugin.store.deleteTemplate(tpl.id);
             this.refreshTab();
         };
@@ -734,6 +756,7 @@ class GymTrackerSettingTab extends PluginSettingTab {
         });
         delExBtn.onclick = async (ev: MouseEvent) => {
             ev.stopPropagation();
+            await this.flushSave(tpl);
             tpl.exercises = tpl.exercises.filter(e => e.id !== ex.id);
             await this.plugin.store.saveTemplate(tpl);
             this.refreshTab();
@@ -760,9 +783,9 @@ class GymTrackerSettingTab extends PluginSettingTab {
             cls: "gym-exercise-note-input",
             attr: { type: "text", value: ex.note || "", placeholder: "Optional note" },
         });
-        noteInput.onchange = async () => {
+        noteInput.oninput = () => {
             ex.note = noteInput.value;
-            await this.plugin.store.saveTemplate(tpl);
+            this.scheduleSave(tpl);
         };
 
         // Sets table
@@ -787,9 +810,9 @@ class GymTrackerSettingTab extends PluginSettingTab {
                 cls: "gym-set-input",
                 attr: { type: "number", min: "0", value: String(set.reps) },
             });
-            repsInput.onchange = async () => {
+            repsInput.oninput = () => {
                 set.reps = Number(repsInput.value);
-                await this.plugin.store.saveTemplate(tpl);
+                this.scheduleSave(tpl);
             };
 
             // Weight
@@ -798,9 +821,9 @@ class GymTrackerSettingTab extends PluginSettingTab {
                 cls: "gym-set-input",
                 attr: { type: "number", min: "0", step: "0.5", value: String(set.weight) },
             });
-            wtInput.onchange = async () => {
+            wtInput.oninput = () => {
                 set.weight = Number(wtInput.value);
-                await this.plugin.store.saveTemplate(tpl);
+                this.scheduleSave(tpl);
             };
 
             // Rest
@@ -809,9 +832,9 @@ class GymTrackerSettingTab extends PluginSettingTab {
                 cls: "gym-set-input",
                 attr: { type: "number", min: "0", value: String(set.restSeconds) },
             });
-            restInput.onchange = async () => {
+            restInput.oninput = () => {
                 set.restSeconds = Number(restInput.value);
-                await this.plugin.store.saveTemplate(tpl);
+                this.scheduleSave(tpl);
             };
         }
 
