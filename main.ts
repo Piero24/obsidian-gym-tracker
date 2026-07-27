@@ -114,6 +114,7 @@ class GymTrackerSettingTab extends PluginSettingTab {
     collapsedTemplates: Set<string> = new Set();
     expandedExercises: Set<string> = new Set();
     private saveTimeout: number | null = null;
+    private saveQueue: Promise<void> = Promise.resolve();
 
     constructor(app: App, plugin: GymTrackerPlugin) {
         super(app, plugin);
@@ -137,7 +138,11 @@ class GymTrackerSettingTab extends PluginSettingTab {
         }
         this.saveTimeout = window.setTimeout(() => {
             this.saveTimeout = null;
-            void this.plugin.store.saveTemplate(tpl);
+            this.saveQueue = this.saveQueue
+                .then(() => this.plugin.store.saveTemplate(tpl))
+                .catch(err => {
+                    console.error('Gym Tracker: template save failed:', err);
+                });
         }, 400);
     }
 
@@ -147,6 +152,7 @@ class GymTrackerSettingTab extends PluginSettingTab {
             window.clearTimeout(this.saveTimeout);
             this.saveTimeout = null;
         }
+        await this.saveQueue;
         await this.plugin.store.saveTemplate(tpl);
     }
 

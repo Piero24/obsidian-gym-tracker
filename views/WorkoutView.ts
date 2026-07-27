@@ -25,6 +25,7 @@ export class WorkoutView extends ItemView {
     private todayData: Map<string, Map<number, { reps: number; weight: number }>> = new Map();
     private isDeleted: boolean = false;
     private saveTimeout: number | null = null;
+    private saveChain: Promise<void> = Promise.resolve();
 
     constructor(leaf: WorkspaceLeaf, store: DataStore) {
         super(leaf);
@@ -52,7 +53,12 @@ export class WorkoutView extends ItemView {
     }
 
     async setState(state: Record<string, unknown>, result: ViewStateResult): Promise<void> {
-        this.date = (state.date as string) ?? "";
+        const newDate = (state.date as string) ?? "";
+        // Save current session before switching to a different date
+        if (newDate !== this.date && this.date) {
+            await this.flushSave();
+        }
+        this.date = newDate;
         result.history = false;
         await this.render();
     }
@@ -365,9 +371,11 @@ export class WorkoutView extends ItemView {
                 attr: { type: "number", min: "0", max: "999" },
             });
             repInput.value = String(today.reps);
-            repInput.oninput = () => this.updateTodayData(
-                tplEx.id, sn, Number(repInput.value), today.weight
-            );
+            repInput.oninput = () => {
+                const current = this.todayData.get(tplEx.id)?.get(sn)
+                    ?? { reps: tSet.reps, weight: tSet.weight };
+                this.updateTodayData(tplEx.id, sn, Number(repInput.value), current.weight);
+            };
 
             // kg templ. (read-only)
             tr.createEl("td", {
@@ -388,9 +396,11 @@ export class WorkoutView extends ItemView {
                 attr: { type: "number", min: "0", max: "9999", step: "0.5" },
             });
             kgInput.value = String(today.weight);
-            kgInput.oninput = () => this.updateTodayData(
-                tplEx.id, sn, today.reps, Number(kgInput.value)
-            );
+            kgInput.oninput = () => {
+                const current = this.todayData.get(tplEx.id)?.get(sn)
+                    ?? { reps: tSet.reps, weight: tSet.weight };
+                this.updateTodayData(tplEx.id, sn, current.reps, Number(kgInput.value));
+            };
 
             // rest (read-only)
             tr.createEl("td", {
@@ -425,8 +435,19 @@ export class WorkoutView extends ItemView {
         }
         this.saveTimeout = window.setTimeout(() => {
             this.saveTimeout = null;
-            void this.autoSave();
+            void this.enqueueAutoSave();
         }, 300);
+    }
+
+    /** Enqueue an autoSave so all saves run sequentially via a promise chain.
+     *  Prevents concurrent writes from racing each other. */
+    private enqueueAutoSave(): Promise<void> {
+        this.saveChain = this.saveChain
+            .then(() => this.autoSave())
+            .catch(err => {
+                console.error('Gym Tracker: autoSave failed:', err);
+            });
+        return this.saveChain;
     }
 
     /** Persist the current form state to storage immediately. */
@@ -478,6 +499,8 @@ export class WorkoutView extends ItemView {
             window.clearTimeout(this.saveTimeout);
             this.saveTimeout = null;
         }
+        // Wait for any in-flight save to complete, then save with latest state
+        await this.saveChain;
         await this.autoSave();
     }
 
