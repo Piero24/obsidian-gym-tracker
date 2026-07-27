@@ -1,5 +1,5 @@
 import { GymTrackerData, GymSettings, WorkoutTemplate, WorkoutSession, LastSetData } from "../types";
-import { Plugin, normalizePath } from "obsidian";
+import { Plugin, normalizePath, Notice } from "obsidian";
 
 const DEFAULT_SETTINGS: GymSettings = {
     weekStartDay: 'monday',
@@ -160,7 +160,9 @@ export class DataStore {
             const mainContent = this.buildFile(mainData);
             await vault.adapter.write(path, mainContent);
         } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
             console.error('Gym Tracker: vault write failed:', err);
+            new Notice(`Gym Workout Tracker: Failed to save data. ${message}`, 8000);
         }
     }
 
