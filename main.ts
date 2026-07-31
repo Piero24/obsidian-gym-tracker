@@ -4,7 +4,7 @@ import { DataStore } from "./data/DataStore";
 import { CalendarView, CALENDAR_VIEW_TYPE } from "./views/CalendarView";
 import { WorkoutView, WORKOUT_VIEW_TYPE } from "./views/WorkoutView";
 import { WorkoutTemplate, TemplateExercise } from "./types";
-import { searchExercises, getExerciseById } from "./data/exerciseDataset";
+import { searchExercises } from "./data/exerciseDataset";
 import { todayStr } from "./utils/calendar";
 
 export default class GymTrackerPlugin extends Plugin {
